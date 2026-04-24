@@ -275,7 +275,6 @@ export default struct HomePage {
           .select(this.keepScreenOn)
           .onChange((value: boolean) => {
             this.keepScreenOn = value;
-            // 如果已经在振动中，切换选项时立即生效
             if (value) {
               this.enableKeepScreenOn();
             } else if (!value) {
