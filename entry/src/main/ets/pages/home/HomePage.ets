@@ -2,12 +2,11 @@ import { vibrator } from '@kit.SensorServiceKit';
 import { cameraPicker, camera } from '@kit.CameraKit';
 import { common } from '@kit.AbilityKit';
 import { runningLock } from '@kit.BasicServicesKit';
-import { componentSnapshot } from '@kit.ArkUI';
+import { componentSnapshot, window } from '@kit.ArkUI';
 
 @Component
 export default struct HomePage {
   static readonly NAME: string = 'HomePage';
-
   @State isVibrating: boolean = false;
   @State isRecording: boolean = false;
   @State keepScreenOn: boolean = false;
@@ -79,26 +78,42 @@ export default struct HomePage {
   // 开启屏幕常亮
   async enableKeepScreenOn() {
     try {
-      if (!this.screenLock) {
-        this.screenLock = await runningLock.create('screen', runningLock.RunningLockType.BACKGROUND);
-      }
-      this.screenLock.hold(0); // 0 表示永久锁定
-      console.info('Screen keep on enabled');
+      // 使用 window API 设置屏幕常亮
+      const win = await window.getLastWindow(getContext(this));
+      await win.setWindowKeepScreenOn(true);
+      console.info('Screen keep on enabled via window');
     } catch (error) {
-      console.error('Failed to enable keep screen on: ' + JSON.stringify(error));
+      console.error('Failed to enable keep screen on via window: ' + JSON.stringify(error));
+      // 如果window方式失败，尝试使用runningLock
+      try {
+        if (!this.screenLock) {
+          this.screenLock = await runningLock.create('screen', runningLock.RunningLockType.BACKGROUND);
+        }
+        this.screenLock.hold(0);
+        console.info('Screen keep on enabled via runningLock');
+      } catch (err) {
+        console.error('Failed to enable keep screen on via runningLock: ' + JSON.stringify(err));
+      }
     }
   }
 
   // 关闭屏幕常亮
-  disableKeepScreenOn() {
+  async disableKeepScreenOn() {
+    try {
+      const win = await window.getLastWindow(getContext(this));
+      await win.setWindowKeepScreenOn(false);
+      console.info('Screen keep on disabled via window');
+    } catch (error) {
+      console.error('Failed to disable keep screen on via window: ' + JSON.stringify(error));
+    }
+    // 同时释放 runningLock
     try {
       if (this.screenLock) {
         this.screenLock.unhold();
         this.screenLock = null;
-        console.info('Screen keep on disabled');
       }
-    } catch (error) {
-      console.error('Failed to disable keep screen on: ' + JSON.stringify(error));
+    } catch (err) {
+      console.error('Failed to release screen lock: ' + JSON.stringify(err));
     }
   }
 
