@@ -24,7 +24,7 @@ export default struct HomePage {
     this.doVibrate();
     this.vibrateInterval = setInterval(() => {
       this.doVibrate();
-    }, 100);
+    }, 1000);
 
     // 如果勾选了屏幕常亮
     if (this.keepScreenOn) {
@@ -37,7 +37,7 @@ export default struct HomePage {
     try {
       vibrator.startVibration({
         type: 'time',
-        duration: 50
+        duration: 3000
       }, {
         usage: 'alarm'
       }).then(() => {
