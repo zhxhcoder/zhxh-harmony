@@ -1,5 +1,5 @@
 @Component
-struct DiscoverPage {
+export default struct DiscoverPage {
   build() {
     Column() {
       Text('发现页面')

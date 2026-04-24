@@ -3,7 +3,7 @@ import { cameraPicker, camera } from '@kit.CameraKit';
 import { common } from '@kit.AbilityKit';
 
 @Component
-struct HomePage {
+export default struct HomePage {
   static readonly NAME: string = 'HomePage';
 
   @State isVibrating: boolean = false;
@@ -12,7 +12,7 @@ struct HomePage {
   private captureSession: camera.CaptureSession | null = null;
 
   private getAppContext(): common.Context {
-    return getContext(this) as common.Context;
+    return this.getUIContext().getHostContext() as common.Context;
   }
 
   // 开始持续振动
@@ -65,7 +65,7 @@ struct HomePage {
     try {
       // 使用相机选择器打开相机并开始录像
       const pickerResult = await cameraPicker.pick(this.getAppContext(), [
-        cameraPicker.PickType.CAMERA
+        cameraPicker.PickerMediaType.PHOTO
       ], {
         cameraPosition: camera.CameraPosition.CAMERA_POSITION_BACK
       });
