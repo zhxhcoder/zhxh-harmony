@@ -1,18 +1,24 @@
 import { vibrator } from '@kit.SensorServiceKit';
+import { cameraPicker, camera } from '@kit.CameraKit';
+import { common } from '@kit.AbilityKit';
 
 @Component
 struct HomePage {
   static readonly NAME: string = 'HomePage';
 
   @State isVibrating: boolean = false;
+  @State isRecording: boolean = false;
   private vibrateInterval: number = -1;
+  private captureSession: camera.CaptureSession | null = null;
+
+  private getAppContext(): common.Context {
+    return getContext(this) as common.Context;
+  }
 
   // 开始持续振动
   startVibrate() {
     this.isVibrating = true;
-    // 立即振动一次
     this.doVibrate();
-    // 每100ms振动一次，实现持续振动效果
     this.vibrateInterval = setInterval(() => {
       this.doVibrate();
     }, 100);
@@ -54,43 +60,116 @@ struct HomePage {
     }
   }
 
-  aboutToDisappear() {
-    // 页面销毁时停止振动
+  // 开始录像
+  async startRecording() {
+    try {
+      // 使用相机选择器打开相机并开始录像
+      const pickerResult = await cameraPicker.pick(this.getAppContext(), [
+        cameraPicker.PickType.CAMERA
+      ], {
+        cameraPosition: camera.CameraPosition.CAMERA_POSITION_BACK
+      });
+
+      if (pickerResult) {
+        this.isRecording = true;
+        console.info('Camera recording started');
+      }
+    } catch (error) {
+      console.error('Failed to start recording: ' + JSON.stringify(error));
+    }
+  }
+
+  // 停止录像
+  stopRecording() {
+    this.isRecording = false;
+    if (this.captureSession) {
+      this.captureSession.release();
+      this.captureSession = null;
+    }
+    console.info('Camera recording stopped');
+  }
+
+  // 统一停止
+  stopAll() {
     this.stopVibrate();
+    this.stopRecording();
+  }
+
+  aboutToDisappear() {
+    this.stopAll();
   }
 
   build() {
-    Column({ space: 20 }) {
-      Text('极速耗电测试')
-        .fontSize(24)
-        .fontWeight(FontWeight.Bold)
-        .margin({ top: 50 })
+    Row({ space: 30 }) {
+      // 左侧振动功能
+      Column({ space: 20 }) {
+        Text('极速耗电测试')
+          .fontSize(24)
+          .fontWeight(FontWeight.Bold)
+          .margin({ top: 50 })
 
-      Text(this.isVibrating ? '正在持续振动...' : '点击开始持续振动')
-        .fontSize(16)
-        .fontColor(this.isVibrating ? '#FF4444' : '#666666')
+        Text(this.isVibrating ? '正在持续振动...' : '点击开始持续振动')
+          .fontSize(16)
+          .fontColor(this.isVibrating ? '#FF4444' : '#666666')
 
-      Button($r('app.string.vibrate_start'))
-        .width(200)
-        .height(50)
-        .fontSize(18)
-        .fontColor(Color.White)
-        .backgroundColor($r('app.color.primary_button'))
-        .enabled(!this.isVibrating)
-        .onClick(() => {
-          this.startVibrate();
-        })
+        Button($r('app.string.vibrate_start'))
+          .width(160)
+          .height(50)
+          .fontSize(18)
+          .fontColor(Color.White)
+          .backgroundColor($r('app.color.primary_button'))
+          .enabled(!this.isVibrating)
+          .onClick(() => {
+            this.startVibrate();
+          })
 
-      Button($r('app.string.vibrate_stop'))
-        .width(200)
-        .height(50)
-        .fontSize(18)
-        .fontColor(Color.White)
-        .backgroundColor($r('app.color.stop_button'))
-        .enabled(this.isVibrating)
-        .onClick(() => {
-          this.stopVibrate();
-        })
+        Button($r('app.string.btn_stop'))
+          .width(160)
+          .height(50)
+          .fontSize(18)
+          .fontColor(Color.White)
+          .backgroundColor($r('app.color.stop_button'))
+          .enabled(this.isVibrating || this.isRecording)
+          .onClick(() => {
+            this.stopAll();
+          })
+      }
+      .width('50%')
+
+      // 右侧录像功能
+      Column({ space: 20 }) {
+        Text('扫描录像')
+          .fontSize(24)
+          .fontWeight(FontWeight.Bold)
+          .margin({ top: 50 })
+
+        Text(this.isRecording ? '正在录像中...' : '点击开始扫描录像')
+          .fontSize(16)
+          .fontColor(this.isRecording ? '#FF4444' : '#666666')
+
+        Button($r('app.string.btn_scan_record'))
+          .width(160)
+          .height(50)
+          .fontSize(18)
+          .fontColor(Color.White)
+          .backgroundColor('#FF6B00')
+          .enabled(!this.isRecording)
+          .onClick(() => {
+            this.startRecording();
+          })
+
+        Button($r('app.string.btn_stop'))
+          .width(160)
+          .height(50)
+          .fontSize(18)
+          .fontColor(Color.White)
+          .backgroundColor($r('app.color.stop_button'))
+          .enabled(this.isRecording || this.isVibrating)
+          .onClick(() => {
+            this.stopAll();
+          })
+      }
+      .width('50%')
     }
     .width('100%')
     .height('100%')

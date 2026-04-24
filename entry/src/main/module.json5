@@ -15,6 +15,12 @@
     "requestPermissions": [
       {
         "name": "ohos.permission.VIBRATE"
+      },
+      {
+        "name": "ohos.permission.CAMERA"
+      },
+      {
+        "name": "ohos.permission.RECORD_AUDIO"
       }
     ],
     "abilities": [

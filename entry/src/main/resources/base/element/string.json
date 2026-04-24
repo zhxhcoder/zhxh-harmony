@@ -26,11 +26,15 @@
     },
     {
       "name": "vibrate_start",
-      "value": "极速耗电"
+      "value": "振动"
     },
     {
-      "name": "vibrate_stop",
+      "name": "btn_stop",
       "value": "停止"
+    },
+    {
+      "name": "btn_scan_record",
+      "value": "扫描录像"
     }
   ]
 }
