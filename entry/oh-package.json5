@@ -1,0 +1,11 @@
+{
+  "license": "",
+  "devDependencies": {},
+  "author": "zhxh",
+  "name": "entry",
+  "description": "Entry module",
+  "main": "",
+  "version": "1.0.0",
+  "dynamicDependencies": {},
+  "dependencies": {}
+}

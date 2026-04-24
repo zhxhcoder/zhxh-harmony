@@ -1,0 +1,7 @@
+/node_modules
+/.idea
+/build
+/.hvigor
+/local.properties
+*.log
+.DS_Store

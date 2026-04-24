@@ -1,0 +1,36 @@
+{
+  "string": [
+    {
+      "name": "app_name",
+      "value": "zhxh-harmony"
+    },
+    {
+      "name": "module_desc",
+      "value": "Entry module"
+    },
+    {
+      "name": "ability_desc",
+      "value": "Entry ability"
+    },
+    {
+      "name": "tab_home",
+      "value": "首页"
+    },
+    {
+      "name": "tab_discover",
+      "value": "发现"
+    },
+    {
+      "name": "tab_mine",
+      "value": "我的"
+    },
+    {
+      "name": "vibrate_start",
+      "value": "极速耗电"
+    },
+    {
+      "name": "vibrate_stop",
+      "value": "停止"
+    }
+  ]
+}

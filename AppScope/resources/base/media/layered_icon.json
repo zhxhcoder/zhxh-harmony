@@ -1,0 +1,8 @@
+{
+  "layered": [
+    {
+      "name": "layered_icon",
+      "value": "$media:icon"
+    }
+  ]
+}

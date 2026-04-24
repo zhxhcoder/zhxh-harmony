@@ -1,0 +1,11 @@
+{
+  "app": {
+    "bundleName": "com.zhxh.harmony",
+    "vendor": "zhxh",
+    "versionCode": 1000000,
+    "versionName": "1.0.0",
+    "icon": "$media:layered_icon",
+    "label": "$string:app_name",
+    "configuration": "$profile:configuration"
+  }
+}
