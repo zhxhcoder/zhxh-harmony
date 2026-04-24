@@ -7,17 +7,18 @@
         "material": {
           "certpath": "/Users/zhxh/.ohos/config/default_zhxh-harmony_kza8uyCJwm_1xgpOHmgC8x2bN6qPnzeZowFcaVgyvf4=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001BE3CE277D5333368F1EB8B5C8F50A7CD55F50F60E1298F481C7B9790D9D44B85EF6AFE12FC107D8",
+          "keyPassword": "0000001B781900AB2F0F1C0C3DEB65571809E0E38FEA9C7BD3CE5FDD3513CA231DD5D1FFAEC4AACD43DAFA",
           "profile": "/Users/zhxh/.ohos/config/default_zhxh-harmony_kza8uyCJwm_1xgpOHmgC8x2bN6qPnzeZowFcaVgyvf4=.p7b",
           "signAlg": "SHA256withECDSA",
           "storeFile": "/Users/zhxh/.ohos/config/default_zhxh-harmony_kza8uyCJwm_1xgpOHmgC8x2bN6qPnzeZowFcaVgyvf4=.p12",
-          "storePassword": "0000001BF809F8DFA0DF07B02D1F9149E8C774544F0413B51B4665EC9CA19D316E4063D4B301D965FE997A"
+          "storePassword": "0000001B5729F07540BF87B55DC65ECA7D52288BD4E15713C42A864C9B1AFCC23DF38200CE9534F844E7A1"
         }
       }
     ],
     "products": [
       {
         "name": "default",
+        "signingConfig": "default",
         "compatibleSdkVersion": "5.0.0(12)",
         "runtimeOS": "HarmonyOS",
         "buildOption": {
