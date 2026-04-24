@@ -10,7 +10,9 @@ export default struct HomePage {
   @State isVibrating: boolean = false;
   @State isRecording: boolean = false;
   @State keepScreenOn: boolean = false;
+  @State isRecordingLooping: boolean = false;
   private vibrateInterval: number = -1;
+  private recordingLoopInterval: number = -1;
   private captureSession: camera.CaptureSession | null = null;
   private screenLock: runningLock.RunningLock | null = null;
 
@@ -126,10 +128,60 @@ export default struct HomePage {
     console.info('Camera recording stopped');
   }
 
+  // 循环录像：启动→停止→循环
+  async startRecordingLoop() {
+    if (this.isRecordingLooping) {
+      return;
+    }
+    this.isRecordingLooping = true;
+
+    const loopOnce = async () => {
+      if (!this.isRecordingLooping) {
+        return;
+      }
+
+      // 启动录像
+      await this.startRecording();
+      console.info('Recording loop: started');
+
+      // 等待2秒
+      await new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), 2000);
+      });
+
+      if (!this.isRecordingLooping) {
+        return;
+      }
+
+      // 停止录像
+      this.stopRecording();
+      console.info('Recording loop: stopped');
+
+      // 等待1秒
+      await new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), 1000);
+      });
+
+      // 继续循环
+      if (this.isRecordingLooping) {
+        loopOnce();
+      }
+    };
+
+    loopOnce();
+  }
+
+  // 停止循环录像
+  stopRecordingLoop() {
+    this.isRecordingLooping = false;
+    this.stopRecording();
+  }
+
   // 统一停止
   stopAll() {
     this.stopVibrate();
     this.stopRecording();
+    this.stopRecordingLoop();
   }
 
   aboutToDisappear() {
@@ -187,7 +239,7 @@ export default struct HomePage {
             .fontSize(18)
             .fontColor(Color.White)
             .backgroundColor($r('app.color.stop_button'))
-            .enabled(this.isVibrating || this.isRecording)
+            .enabled(this.isVibrating || this.isRecording || this.isRecordingLooping)
             .onClick(() => {
               this.stopAll();
             })
@@ -201,19 +253,23 @@ export default struct HomePage {
             .fontWeight(FontWeight.Bold)
             .margin({ top: 30 })
 
-          Text(this.isRecording ? '正在录像中...' : '点击开始扫描录像')
+          Text(this.isRecordingLooping ? '循环录像中...' : (this.isRecording ? '正在录像中...' : '点击开始循环录像'))
             .fontSize(16)
-            .fontColor(this.isRecording ? '#FF4444' : '#666666')
+            .fontColor(this.isRecordingLooping ? '#FF6B00' : (this.isRecording ? '#FF4444' : '#666666'))
 
-          Button($r('app.string.btn_scan_record'))
+          Button(this.isRecordingLooping ? '停止循环' : $r('app.string.btn_scan_record'))
             .width(160)
             .height(50)
             .fontSize(18)
             .fontColor(Color.White)
-            .backgroundColor('#FF6B00')
-            .enabled(!this.isRecording)
+            .backgroundColor(this.isRecordingLooping ? $r('app.color.stop_button') : '#FF6B00')
+            .enabled(!this.isRecording || this.isRecordingLooping)
             .onClick(() => {
-              this.startRecording();
+              if (this.isRecordingLooping) {
+                this.stopRecordingLoop();
+              } else {
+                this.startRecordingLoop();
+              }
             })
 
           Button($r('app.string.btn_stop'))
@@ -222,7 +278,7 @@ export default struct HomePage {
             .fontSize(18)
             .fontColor(Color.White)
             .backgroundColor($r('app.color.stop_button'))
-            .enabled(this.isRecording || this.isVibrating)
+            .enabled(this.isRecording || this.isRecordingLooping || this.isVibrating)
             .onClick(() => {
               this.stopAll();
             })
