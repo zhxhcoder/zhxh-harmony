@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/zhxh/.ohos/config/default_zhxh-harmony_kza8uyCJwm_1xgpOHmgC8x2bN6qPnzeZowFcaVgyvf4=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001BE3CE277D5333368F1EB8B5C8F50A7CD55F50F60E1298F481C7B9790D9D44B85EF6AFE12FC107D8",
+          "profile": "/Users/zhxh/.ohos/config/default_zhxh-harmony_kza8uyCJwm_1xgpOHmgC8x2bN6qPnzeZowFcaVgyvf4=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/zhxh/.ohos/config/default_zhxh-harmony_kza8uyCJwm_1xgpOHmgC8x2bN6qPnzeZowFcaVgyvf4=.p12",
+          "storePassword": "0000001BF809F8DFA0DF07B02D1F9149E8C774544F0413B51B4665EC9CA19D316E4063D4B301D965FE997A"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
@@ -10,7 +24,8 @@
           "strictMode": {
             "useNormalizedOHMUrl": true
           }
-        }
+        },
+        "targetSdkVersion": "5.0.0(12)"
       }
     ],
     "buildModeSet": [
