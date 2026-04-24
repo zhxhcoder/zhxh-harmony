@@ -2,6 +2,7 @@ import { vibrator } from '@kit.SensorServiceKit';
 import { cameraPicker, camera } from '@kit.CameraKit';
 import { common } from '@kit.AbilityKit';
 import { runningLock } from '@kit.BasicServicesKit';
+import { componentSnapshot } from '@kit.ArkUI';
 
 @Component
 export default struct HomePage {
@@ -11,6 +12,8 @@ export default struct HomePage {
   @State isRecording: boolean = false;
   @State keepScreenOn: boolean = false;
   @State isRecordingLooping: boolean = false;
+  @State isCapturing: boolean = false;
+  @State captureCount: number = 0;
   private vibrateInterval: number = -1;
   private recordingLoopInterval: number = -1;
   private captureSession: camera.CaptureSession | null = null;
@@ -177,11 +180,63 @@ export default struct HomePage {
     this.stopRecording();
   }
 
+  // 执行截屏
+  async doCapture() {
+    try {
+      this.captureCount++;
+      const currentCount = this.captureCount;
+      console.info('Screenshot ' + currentCount + ' started');
+
+      // 对整个页面截屏，使用当前页面的根组件ID
+      const pixelMap = await componentSnapshot.get('root');
+
+      console.info('Screenshot ' + currentCount + ' captured successfully');
+    } catch (error) {
+      console.error('Screenshot ' + this.captureCount + ' failed: ' + JSON.stringify(error));
+    }
+  }
+
+  // 循环截屏：截屏→等待→截屏→循环
+  async startCaptureLoop() {
+    if (this.isCapturing) {
+      return;
+    }
+    this.isCapturing = true;
+    this.captureCount = 0;
+
+    const loopOnce = async () => {
+      if (!this.isCapturing) {
+        return;
+      }
+
+      // 执行截屏
+      await this.doCapture();
+
+      // 等待3秒
+      await new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), 3000);
+      });
+
+      // 继续循环
+      if (this.isCapturing) {
+        loopOnce();
+      }
+    };
+
+    loopOnce();
+  }
+
+  // 停止循环截屏
+  stopCaptureLoop() {
+    this.isCapturing = false;
+  }
+
   // 统一停止
   stopAll() {
     this.stopVibrate();
     this.stopRecording();
     this.stopRecordingLoop();
+    this.stopCaptureLoop();
   }
 
   aboutToDisappear() {
@@ -210,85 +265,128 @@ export default struct HomePage {
       .margin({ top: 20, left: 20 })
       .alignItems(VerticalAlign.Center)
 
-      Row({ space: 30 }) {
-        // 左侧振动功能
-        Column({ space: 20 }) {
-          Text('极速耗电测试')
-            .fontSize(24)
-            .fontWeight(FontWeight.Bold)
-            .margin({ top: 30 })
+      Scroll() {
+        Row({ space: 30 }) {
+          // 左侧振动功能
+          Column({ space: 20 }) {
+            Text('极速耗电测试')
+              .fontSize(24)
+              .fontWeight(FontWeight.Bold)
+              .margin({ top: 30 })
 
-          Text(this.isVibrating ? '正在持续振动...' : '点击开始持续振动')
-            .fontSize(16)
-            .fontColor(this.isVibrating ? '#FF4444' : '#666666')
+            Text(this.isVibrating ? '正在持续振动...' : '点击开始持续振动')
+              .fontSize(16)
+              .fontColor(this.isVibrating ? '#FF4444' : '#666666')
 
-          Button($r('app.string.vibrate_start'))
-            .width(160)
-            .height(50)
-            .fontSize(18)
-            .fontColor(Color.White)
-            .backgroundColor($r('app.color.primary_button'))
-            .enabled(!this.isVibrating)
-            .onClick(() => {
-              this.startVibrate();
-            })
+            Button($r('app.string.vibrate_start'))
+              .width(160)
+              .height(50)
+              .fontSize(18)
+              .fontColor(Color.White)
+              .backgroundColor($r('app.color.primary_button'))
+              .enabled(!this.isVibrating)
+              .onClick(() => {
+                this.startVibrate();
+              })
 
-          Button($r('app.string.btn_stop'))
-            .width(160)
-            .height(50)
-            .fontSize(18)
-            .fontColor(Color.White)
-            .backgroundColor($r('app.color.stop_button'))
-            .enabled(this.isVibrating || this.isRecording || this.isRecordingLooping)
-            .onClick(() => {
-              this.stopAll();
-            })
+            Button($r('app.string.btn_stop'))
+              .width(160)
+              .height(50)
+              .fontSize(18)
+              .fontColor(Color.White)
+              .backgroundColor($r('app.color.stop_button'))
+              .enabled(this.isVibrating || this.isRecording || this.isRecordingLooping || this.isCapturing)
+              .onClick(() => {
+                this.stopAll();
+              })
+          }
+          .width(200)
+
+          // 中间录像功能
+          Column({ space: 20 }) {
+            Text('扫描录像')
+              .fontSize(24)
+              .fontWeight(FontWeight.Bold)
+              .margin({ top: 30 })
+
+            Text(this.isRecordingLooping ? '循环录像中...' : (this.isRecording ? '正在录像中...' : '点击开始循环录像'))
+              .fontSize(16)
+              .fontColor(this.isRecordingLooping ? '#FF6B00' : (this.isRecording ? '#FF4444' : '#666666'))
+
+            Button(this.isRecordingLooping ? '停止循环' : $r('app.string.btn_scan_record'))
+              .width(160)
+              .height(50)
+              .fontSize(18)
+              .fontColor(Color.White)
+              .backgroundColor(this.isRecordingLooping ? $r('app.color.stop_button') : '#FF6B00')
+              .enabled(!this.isRecording || this.isRecordingLooping)
+              .onClick(() => {
+                if (this.isRecordingLooping) {
+                  this.stopRecordingLoop();
+                } else {
+                  this.startRecordingLoop();
+                }
+              })
+
+            Button($r('app.string.btn_stop'))
+              .width(160)
+              .height(50)
+              .fontSize(18)
+              .fontColor(Color.White)
+              .backgroundColor($r('app.color.stop_button'))
+              .enabled(this.isRecording || this.isRecordingLooping || this.isVibrating || this.isCapturing)
+              .onClick(() => {
+                this.stopAll();
+              })
+          }
+          .width(200)
+
+          // 右侧截屏功能
+          Column({ space: 20 }) {
+            Text('无线截屏')
+              .fontSize(24)
+              .fontWeight(FontWeight.Bold)
+              .margin({ top: 30 })
+
+            Text(this.isCapturing ? '第' + this.captureCount + '次截屏中...' : '点击开始循环截屏')
+              .fontSize(16)
+              .fontColor(this.isCapturing ? '#44AAFF' : '#666666')
+
+            Button(this.isCapturing ? '停止循环' : '开始截屏')
+              .width(160)
+              .height(50)
+              .fontSize(18)
+              .fontColor(Color.White)
+              .backgroundColor(this.isCapturing ? $r('app.color.stop_button') : '#44AAFF')
+              .enabled(!this.isCapturing)
+              .onClick(() => {
+                if (this.isCapturing) {
+                  this.stopCaptureLoop();
+                } else {
+                  this.startCaptureLoop();
+                }
+              })
+
+            Button($r('app.string.btn_stop'))
+              .width(160)
+              .height(50)
+              .fontSize(18)
+              .fontColor(Color.White)
+              .backgroundColor($r('app.color.stop_button'))
+              .enabled(this.isCapturing || this.isRecording || this.isRecordingLooping || this.isVibrating)
+              .onClick(() => {
+                this.stopAll();
+              })
+          }
+          .width(200)
         }
-        .width('50%')
-
-        // 右侧录像功能
-        Column({ space: 20 }) {
-          Text('扫描录像')
-            .fontSize(24)
-            .fontWeight(FontWeight.Bold)
-            .margin({ top: 30 })
-
-          Text(this.isRecordingLooping ? '循环录像中...' : (this.isRecording ? '正在录像中...' : '点击开始循环录像'))
-            .fontSize(16)
-            .fontColor(this.isRecordingLooping ? '#FF6B00' : (this.isRecording ? '#FF4444' : '#666666'))
-
-          Button(this.isRecordingLooping ? '停止循环' : $r('app.string.btn_scan_record'))
-            .width(160)
-            .height(50)
-            .fontSize(18)
-            .fontColor(Color.White)
-            .backgroundColor(this.isRecordingLooping ? $r('app.color.stop_button') : '#FF6B00')
-            .enabled(!this.isRecording || this.isRecordingLooping)
-            .onClick(() => {
-              if (this.isRecordingLooping) {
-                this.stopRecordingLoop();
-              } else {
-                this.startRecordingLoop();
-              }
-            })
-
-          Button($r('app.string.btn_stop'))
-            .width(160)
-            .height(50)
-            .fontSize(18)
-            .fontColor(Color.White)
-            .backgroundColor($r('app.color.stop_button'))
-            .enabled(this.isRecording || this.isRecordingLooping || this.isVibrating)
-            .onClick(() => {
-              this.stopAll();
-            })
-        }
-        .width('50%')
+        .padding({ left: 20, right: 20 })
       }
+      .scrollable(ScrollDirection.Horizontal)
       .width('100%')
-      .justifyContent(FlexAlign.Center)
     }
     .width('100%')
     .height('100%')
+    .id('root')
   }
 }
