@@ -29,11 +29,6 @@ export default struct HomePage {
     this.vibrateInterval = setInterval(() => {
       this.doVibrate();
     }, 1000);
-
-    // 如果勾选了屏幕常亮
-    if (this.keepScreenOn) {
-      this.enableKeepScreenOn();
-    }
   }
 
   // 执行单次振动
@@ -281,9 +276,9 @@ export default struct HomePage {
           .onChange((value: boolean) => {
             this.keepScreenOn = value;
             // 如果已经在振动中，切换选项时立即生效
-            if (this.isVibrating && value) {
+            if (value) {
               this.enableKeepScreenOn();
-            } else if (this.isVibrating && !value) {
+            } else if (!value) {
               this.disableKeepScreenOn();
             }
           })
