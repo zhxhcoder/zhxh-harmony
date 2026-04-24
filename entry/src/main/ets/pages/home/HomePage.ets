@@ -78,13 +78,24 @@ export default struct HomePage {
   // 开启屏幕常亮
   async enableKeepScreenOn() {
     try {
-      // 使用 window API 设置屏幕常亮
-      const win = await window.getLastWindow(getContext(this));
-      await win.setWindowKeepScreenOn(true);
-      console.info('Screen keep on enabled via window');
+      // 获取上下文
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      if (context) {
+        const win = await window.getLastWindow(context);
+        await win.setWindowKeepScreenOn(true);
+        console.info('Screen keep on enabled via window');
+        return;
+      }
+      // 备用方案使用runningLock
+      console.warn('Context not available, using runningLock');
+      if (!this.screenLock) {
+        this.screenLock = await runningLock.create('screen', runningLock.RunningLockType.BACKGROUND);
+      }
+      this.screenLock.hold(0);
+      console.info('Screen keep on enabled via runningLock');
     } catch (error) {
-      console.error('Failed to enable keep screen on via window: ' + JSON.stringify(error));
-      // 如果window方式失败，尝试使用runningLock
+      console.error('Failed to enable keep screen on: ' + JSON.stringify(error));
+      // 备用方案使用runningLock
       try {
         if (!this.screenLock) {
           this.screenLock = await runningLock.create('screen', runningLock.RunningLockType.BACKGROUND);
@@ -100,9 +111,12 @@ export default struct HomePage {
   // 关闭屏幕常亮
   async disableKeepScreenOn() {
     try {
-      const win = await window.getLastWindow(getContext(this));
-      await win.setWindowKeepScreenOn(false);
-      console.info('Screen keep on disabled via window');
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      if (context) {
+        const win = await window.getLastWindow(context);
+        await win.setWindowKeepScreenOn(false);
+        console.info('Screen keep on disabled via window');
+      }
     } catch (error) {
       console.error('Failed to disable keep screen on via window: ' + JSON.stringify(error));
     }
